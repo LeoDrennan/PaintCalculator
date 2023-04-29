@@ -1,1 +1,1 @@
-TSI Paint Calculator
+TSI Training Project: Paint Calculator
