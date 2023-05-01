@@ -16,11 +16,12 @@ internal class Program
 
         double paintableArea = 0d;
 
+        // Iterate through each wall
         for (int i = 1; i < wallInt + 1; i++)
         {
             // Prompt user for wall dimensions and calculate area
             Console.WriteLine("\nPlease enter the dimensions of wall {0}:", i);
-            double[] dimensions = getDimensions();
+            double[] dimensions = getWallDimensions();
             double wallArea = calculateArea(dimensions);
 
             // Prompt user for number of windows or doors on wall i
@@ -31,12 +32,19 @@ internal class Program
             for (int j = 1; j < gapInt + 1; j++)
             {
                 Console.WriteLine("\nPlease enter the dimensions of window/door {0} on wall {1} in metres:", j, i);
-                double[] gapDimensions = getDimensions();
+                double[] gapDimensions = getGapDimensions(dimensions);
                 double gapArea = calculateArea(gapDimensions);
                 wallArea -= gapArea;
             }
 
             paintableArea += wallArea;
+        }
+
+        // Calculate total area of paint
+        if (paintableArea <= 0)
+        {
+            Console.WriteLine("\nArea to be painted is zero or less, please start again.");
+            return;
         }
 
         // Load the most up to date version of the paint colour catalogue
@@ -76,13 +84,6 @@ internal class Program
         int coatInt = checkInputIsInteger();
         double coatFloat = Convert.ToSingle(coatInt);
 
-        // Calculate total area of paint
-        if (paintableArea <= 0)
-        {
-            Console.WriteLine("\nArea to be painted is zero or less, please start again.");
-            return;
-        }
-
         // Area being painted
         double totalLitres = paintableArea * coatFloat / 2.5f;
         double roundLitres = (int)Math.Ceiling(totalLitres);
@@ -102,26 +103,28 @@ internal class Program
     }
 
     // Takes user input for height and width, and returns an array of the validated inputs.
-    static double[] getDimensions()
+    static double[] getWallDimensions()
     {
         Console.WriteLine("\nHeight:");
-        double height = checkInputIsNumerical("height");
+        double height = validateWallDimensions("height");
 
         Console.WriteLine("\nWidth:");
-        double width = checkInputIsNumerical("width");
+        double width = validateWallDimensions("width");
 
         double[] validDimensions = new double[] { height, width };
         return validDimensions;
     }
 
     // Take user input for gap height and width and validate against wall dimensions
-    static double[] getGapDimensions()
+    static double[] getGapDimensions(double[] dimensions)
     {
+        double wallHeight = dimensions[0]; 
         Console.WriteLine("\nHeight:");
-        double height = checkInputIsNumerical("height");
+        double height = validateGapDimensions("height", wallHeight);
 
+        double wallWidth = dimensions[1];
         Console.WriteLine("\nWidth:");
-        double width = checkInputIsNumerical("width");
+        double width = validateGapDimensions("width", wallWidth);
 
         double[] validDimensions = new double[] { height, width };
         return validDimensions;
@@ -151,8 +154,8 @@ internal class Program
         return validatedInput;
     }
 
-    //  Takes user input and ensures that it is an double, repeating until a valid input is provided.
-    static double checkInputIsNumerical(string measurement)
+    // Valid wall dimensions must be a positive numerical value
+    static double validateWallDimensions(string measurement)
     {
         string inputString;
         bool validInput = false;
@@ -167,7 +170,37 @@ internal class Program
             }
             else
             {
-                Console.WriteLine(String.Format("Input must be a positive value, please input {0} again:", measurement));
+                Console.WriteLine(String.Format("\nInput must be a positive value, please input {0} again:", measurement));
+            }
+        }
+        while (!validInput);
+        return validatedInput;
+    }
+
+    // Valid gap dimensions must be a positive numerical value smaller than the parent wall
+    static double validateGapDimensions(string measurement, double dimension)
+    {
+        string inputString;
+        bool validInput = false;
+        double validatedInput;
+
+        do
+        {
+            inputString = Console.ReadLine();
+            if (double.TryParse(inputString, out validatedInput) && validatedInput > 0)
+            { 
+                if (validatedInput >= dimension)
+                {
+                    Console.WriteLine(String.Format("\nGap {0} must be smaller than the wall that it is on, please input {0} again:", measurement));
+                }
+                else
+                {
+                    validInput = true;
+                }
+            }
+            else
+            {
+                Console.WriteLine(String.Format("\nInput must be a positive value, please input {0} again:", measurement));
             }
         }
         while (!validInput);
