@@ -10,26 +10,18 @@ internal class Program
         Console.WriteLine("Welcome to the paint calculator!");
         Console.WriteLine("____________________________________\n");
 
-
-        // Ask user to choose which units of measurement that they wish to use
-        Console.WriteLine("Please choose your desired unit of measurement.");
-        Console.WriteLine("Please type either metres(m), centimetres(cm), or millimetres(mm) below:");
-        Console.WriteLine();
-        string unitMode = Console.ReadLine();
-
-
         // Prompt user for number of walls
         Console.WriteLine("\nPlease enter the number of walls that you are painting:");
         int wallInt = checkInputIsInteger();
 
-        double paintableArea = 0f;
+        double paintableArea = 0d;
 
-        // Calculate total paintable area
         for (int i = 1; i < wallInt + 1; i++)
         {
             // Prompt user for wall dimensions and calculate area
             Console.WriteLine("\nPlease enter the dimensions of wall {0}:", i);
-            double wallArea = calculateArea();
+            double[] dimensions = getDimensions();
+            double wallArea = calculateArea(dimensions);
 
             // Prompt user for number of windows or doors on wall i
             Console.WriteLine("\nPlease enter the number of windows and doors on wall {0}:", i);
@@ -39,7 +31,8 @@ internal class Program
             for (int j = 1; j < gapInt + 1; j++)
             {
                 Console.WriteLine("\nPlease enter the dimensions of window/door {0} on wall {1} in metres:", j, i);
-                double gapArea = calculateArea();
+                double[] gapDimensions = getDimensions();
+                double gapArea = calculateArea(gapDimensions);
                 wallArea -= gapArea;
             }
 
@@ -108,6 +101,33 @@ internal class Program
         Console.WriteLine("You will have approximately 0{0} litres of paint remaining.", remainingString);
     }
 
+    // Takes user input for height and width, and returns an array of the validated inputs.
+    static double[] getDimensions()
+    {
+        Console.WriteLine("\nHeight:");
+        double height = checkInputIsNumerical("height");
+
+        Console.WriteLine("\nWidth:");
+        double width = checkInputIsNumerical("width");
+
+        double[] validDimensions = new double[] { height, width };
+        return validDimensions;
+    }
+
+    // Take user input for gap height and width and validate against wall dimensions
+    static double[] getGapDimensions()
+    {
+        Console.WriteLine("\nHeight:");
+        double height = checkInputIsNumerical("height");
+
+        Console.WriteLine("\nWidth:");
+        double width = checkInputIsNumerical("width");
+
+        double[] validDimensions = new double[] { height, width };
+        return validDimensions;
+    }
+
+
     // Takes user input and ensures that it is an integer, repeating until a valid integer is provided.
     static int checkInputIsInteger()
     {
@@ -154,16 +174,9 @@ internal class Program
         return validatedInput;
     }
 
-    // Takes user input for height and width, and outputs the resulting area as a double.
-    static double calculateArea()
+    static double calculateArea(double[] dimensions)
     {
-        Console.WriteLine("\nHeight:");
-        double height = checkInputIsNumerical("height");
-
-        Console.WriteLine("\nWidth:");
-        double width = checkInputIsNumerical("width");
-
-        double area = height * width;
+        double area = dimensions[0] * dimensions[1];
         return area;
     }
 
