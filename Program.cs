@@ -10,6 +10,10 @@ internal class Program
         Console.WriteLine("Welcome to the paint calculator!");
         Console.WriteLine("____________________________________\n");
 
+        // Prompt user to select their unit of choice
+        Console.WriteLine("Please choose between metres (m), centimetres (cm), and millimetres (mm):");
+        double unitModifier = chooseUnit();
+
         // Prompt user for number of walls
         Console.WriteLine("\nPlease enter the number of walls that you are painting:");
         int wallInt = checkInputIsInteger();
@@ -47,34 +51,21 @@ internal class Program
             return;
         }
 
-        // Load the most up to date version of the paint colour catalogue
-        Dictionary<string, int> colours = paintCatalogue();
+        Dictionary<string, int> colours = loadPaintCatalogue();
 
         // Format and display paint options to the user
         Console.WriteLine("\nPaint selection:\n");
         foreach (string colour in colours.Keys)
         {
+            string capitalisedColour = char.ToUpper(colour[0]) + colour.Substring(1);
+            string colourPrice = colours[$"{colour}"].ToString();
 
-            Console.WriteLine('|' + $"{char.ToUpper(colour[0]) + colour.Substring(1)}".PadRight(10) + "| £" + colours[$"{colour}"]);
+            Console.WriteLine('|' + capitalisedColour.PadRight(10) + "| £" + colourPrice);
         }
 
         // Take user input for paint colour
         Console.WriteLine("\nPlease input the colour of paint you wish to use:");
-        string paintType;
-        bool validPaint;
-
-        // Check input is a valid colour of paint
-        do
-        {
-            paintType = Console.ReadLine().ToLower();
-            validPaint = colours.ContainsKey($"{paintType}");
-
-            if (!validPaint)
-            {
-                Console.WriteLine("\nPaint colour is not in the catalogue, please choose another: ");
-            }
-        }
-        while (!validPaint);
+        string paintType = getValidPaint(colours);
 
         // Find cost per litre of chosen paint
         double litreCost = colours[$"{paintType}"];
@@ -84,8 +75,8 @@ internal class Program
         int coatInt = checkInputIsInteger();
         double coatFloat = Convert.ToSingle(coatInt);
 
-        // Area being painted
-        double totalLitres = paintableArea * coatFloat / 2.5f;
+        // Calculate number of litres of paint required
+        double totalLitres = paintableArea * coatFloat / (2.5f * unitModifier);
         double roundLitres = (int)Math.Ceiling(totalLitres);
 
         // Calculate paint that will be left over and format for response
@@ -115,10 +106,11 @@ internal class Program
         return validDimensions;
     }
 
+
     // Take user input for gap height and width and validate against wall dimensions
     static double[] getGapDimensions(double[] dimensions)
     {
-        double wallHeight = dimensions[0]; 
+        double wallHeight = dimensions[0];
         Console.WriteLine("\nHeight:");
         double height = validateGapDimensions("height", wallHeight);
 
@@ -128,6 +120,28 @@ internal class Program
 
         double[] validDimensions = new double[] { height, width };
         return validDimensions;
+    }
+
+
+    // Take user input for paint choice and repeat until valid input is provided
+    static string getValidPaint(Dictionary<string, int> colours) 
+    {
+        string paintType;
+        bool validPaint;
+
+        do
+        {
+            paintType = Console.ReadLine().ToLower();
+            validPaint = colours.ContainsKey($"{paintType}");
+
+            if (!validPaint)
+            {
+                Console.WriteLine("\nPaint colour is not in the catalogue, please choose another: ");
+            }
+        }
+        while (!validPaint);
+
+        return paintType;
     }
 
 
@@ -154,6 +168,7 @@ internal class Program
         return validatedInput;
     }
 
+
     // Valid wall dimensions must be a positive numerical value
     static double validateWallDimensions(string measurement)
     {
@@ -170,12 +185,13 @@ internal class Program
             }
             else
             {
-                Console.WriteLine(String.Format("\nInput must be a positive value, please input {0} again:", measurement));
+                Console.WriteLine("\nInput must be a positive value, please input {0} again:", measurement);
             }
         }
         while (!validInput);
         return validatedInput;
     }
+
 
     // Valid gap dimensions must be a positive numerical value smaller than the parent wall
     static double validateGapDimensions(string measurement, double dimension)
@@ -191,7 +207,8 @@ internal class Program
             { 
                 if (validatedInput >= dimension)
                 {
-                    Console.WriteLine(String.Format("\nGap {0} must be smaller than the wall that it is on, please input {0} again:", measurement));
+                    Console.WriteLine("\nGap {0} must be smaller than the {0} of the wall that it is on.", measurement);
+                    Console.WriteLine("Please input {0} again:", measurement);
                 }
                 else
                 {
@@ -207,6 +224,7 @@ internal class Program
         return validatedInput;
     }
 
+
     static double calculateArea(double[] dimensions)
     {
         double area = dimensions[0] * dimensions[1];
@@ -215,7 +233,7 @@ internal class Program
 
 
     // Loads the current catalogue of paints that are available
-    static Dictionary<string, int> paintCatalogue()
+    static Dictionary<string, int> loadPaintCatalogue()
     {
         var colours = new Dictionary<string, int>();
         colours.Add("white", 5);
@@ -229,5 +247,41 @@ internal class Program
         colours.Add("orange", 6);
 
         return colours;
+    }
+
+
+    // Choose the unit of measurement for input values
+    // Return the appropriate value for conversion back to square metres
+    static double chooseUnit()
+    {
+        string unitInput;
+        double unitModifier = 1d;
+        bool validUnit = false;
+
+        do
+        {
+            unitInput = Console.ReadLine();
+            switch (unitInput)
+            {
+                case "m" or "metres":
+                    unitModifier = 1d;
+                    validUnit = true;
+                    break;
+                case "cm" or "centimetres":
+                    unitModifier = 10000d;
+                    validUnit = true;
+                    break;
+                case "mm" or "millimetres":
+                    unitModifier = 1000000d;
+                    validUnit = true;
+                    break;
+                default:
+                    Console.WriteLine("Please type only m, cm, or mm when choosing a unit. Try again:");
+                    break;
+            }
+        }
+        while (!validUnit);
+
+        return unitModifier;
     }
 }
